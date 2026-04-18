@@ -1,0 +1,71 @@
+{
+  "name": "gather-linux-wrapper",
+  "version": "0.1.0",
+  "description": "Wrapper desktop Electron non-officiel pour Gather Town (Linux)",
+  "homepage": "https://github.com/SergeiBasnya/gather-linux-wrapper",
+  "main": "dist/main.js",
+  "author": {
+    "name": "Sebastien Lafontaine",
+    "email": "sebastienlafontaine@proton.me"
+  },
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "clean": "rimraf dist",
+    "build:ts": "tsc -p tsconfig.json",
+    "dev": "npm run build:ts && electron . --enable-logging",
+    "start": "electron .",
+    "pack": "npm run build:ts && electron-builder --dir",
+    "dist": "npm run build:ts && electron-builder",
+    "dist:appimage": "npm run build:ts && electron-builder --linux AppImage",
+    "dist:rpm": "npm run build:ts && electron-builder --linux --dir && bash scripts/build-rpm.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3"
+  },
+  "build": {
+    "appId": "town.gather.linux.wrapper",
+    "productName": "Gather",
+    "artifactName": "${productName}-${version}.${ext}",
+    "files": [
+      "dist/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "out"
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "rpm", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.png",
+      "category": "Network",
+      "synopsis": "Desktop wrapper pour Gather Town",
+      "description": "Wrapper Electron non-officiel pour Gather Town avec support WebRTC (micro, caméra, partage d'écran Wayland via xdg-desktop-portal).",
+      "desktop": {
+        "Name": "Gather",
+        "Comment": "Virtual HQ pour équipes distribuées",
+        "Categories": "Network;Chat;VideoConference;",
+        "StartupWMClass": "Gather"
+      }
+    },
+    "rpm": {
+      "depends": [
+        "libnotify",
+        "libappindicator-gtk3",
+        "libXScrnSaver",
+        "pipewire"
+      ]
+    },
+    "appImage": {
+      "license": "LICENSE"
+    }
+  }
+}
