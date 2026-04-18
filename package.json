@@ -1,5 +1,6 @@
 {
   "name": "gather-linux-wrapper",
+  "productName": "Gather",
   "version": "0.1.0",
   "description": "Wrapper desktop Electron non-officiel pour Gather Town (Linux)",
   "homepage": "https://github.com/SergeiBasnya/gather-linux-wrapper",
