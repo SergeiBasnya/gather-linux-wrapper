@@ -86,6 +86,14 @@ if (!gotSingleInstanceLock) {
 
 let mainWindow: BrowserWindow | null = null;
 
+// Inclure (ou non) le son système dans le partage d'écran. Désactivé par
+// défaut : sous Linux/PipeWire, `audio: 'loopback'` capture TOUT le son qui
+// sort des haut-parleurs, y compris la conversation Gather en cours, ce qui
+// crée un effet de boucle pour les autres participants. À activer ponctuel-
+// lement (menu View → Include System Audio in Screen Share) pour partager
+// une vidéo avec son.
+let includeAudioInScreenShare = false;
+
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -184,9 +192,15 @@ function createWindow(): void {
         return;
       }
 
-      // audio: 'loopback' = partage le son système avec le flux écran
-      // (Gather le demande via la contrainte audio de getDisplayMedia).
-      callback({ video: sources[0], audio: 'loopback' });
+      // audio: 'loopback' capture le son système entier (pas filtrable par
+      // app sous PipeWire), donc inclut le son de Gather lui-même → boucle.
+      // Off par défaut, togglable via le menu View.
+      if (includeAudioInScreenShare) {
+        console.log('[gather-wrapper] partage avec son système (loopback)');
+        callback({ video: sources[0], audio: 'loopback' });
+      } else {
+        callback({ video: sources[0] });
+      }
     } catch (err) {
       console.error('[gather-wrapper] desktopCapturer a échoué:', err);
       callback({});
@@ -208,12 +222,15 @@ function createWindow(): void {
     return { action: 'deny' };
   });
 
-  // On bloque la navigation hors-Gather (hors OAuth) dans la fenêtre principale
+  // On bloque la navigation hors-Gather (hors OAuth) dans la fenêtre principale.
+  // Cas particulier `file://` : déclenché quand un fichier est drop hors d'une
+  // drop-zone reconnue par Gather. On bloque silencieusement, sinon on
+  // ouvrirait le fichier dans le viewer système par erreur.
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!isAllowedNavigation(url)) {
-      event.preventDefault();
-      shell.openExternal(url).catch(() => undefined);
-    }
+    if (isAllowedNavigation(url)) return;
+    event.preventDefault();
+    if (url.startsWith('file://')) return;
+    shell.openExternal(url).catch(() => undefined);
   });
 
   mainWindow.on('closed', () => {
@@ -241,6 +258,15 @@ function buildMenu(): void {
         { role: 'zoomOut' },
         { type: 'separator' },
         { role: 'togglefullscreen' },
+        { type: 'separator' },
+        {
+          label: 'Include System Audio in Screen Share',
+          type: 'checkbox',
+          checked: includeAudioInScreenShare,
+          click: (menuItem) => {
+            includeAudioInScreenShare = menuItem.checked;
+          },
+        },
       ],
     },
     {
