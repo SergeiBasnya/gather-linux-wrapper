@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Gather
+GenericName=Virtual HQ
+Comment=Wrapper desktop pour Gather Town
+Exec=gather %U
+Icon=gather
+Terminal=false
+Categories=Network;Chat;VideoConference;InstantMessaging;
+Keywords=gather;gathertown;meeting;remote;team;virtual;office;
+StartupNotify=true
+StartupWMClass=Gather
+MimeType=x-scheme-handler/gather;
